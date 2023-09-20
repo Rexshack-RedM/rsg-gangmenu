@@ -24,6 +24,12 @@ server_scripts {
     'server/server.lua'
 }
 
+server_exports {
+    'AddGangMoney',
+    'RemoveGangMoney',
+    'GetGangAccount',
+}
+
 dependencies {
     'rsg-core',
     'ox_lib',
