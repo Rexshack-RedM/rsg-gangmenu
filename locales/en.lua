@@ -41,15 +41,17 @@ local Translations = {
     lang_39 = 'Member Fire',
     lang_40 = ' successfully fired ',
     lang_41 = 'Member fired!',
-    lang_42 = 'You have been fired! Good luck.',
+    lang_42 = 'You have been expelled from the gang!',
     lang_43 = 'Error..',
-    lang_44 = 'You can\'t fire yourself',
+    lang_44 = 'You can\'t kick yourself out of the gang!',
     lang_45 = 'You cannot fire this citizen!',
     lang_46 = 'You hired ',
     lang_47 = ' come ',
     lang_48 = 'You were hired as ',
     lang_49 = 'Recruit',
     lang_50 = ' successfully recruited ',
+	lang_51 = ' successfully withdrew $',
+	lang_52 = ' successfully deposited $',
 
 }
 
@@ -57,3 +59,5 @@ Lang = Locale:new({
     phrases = Translations,
     warnOnMissing = true
 })
+
+-- Lang:t('lang_43')
