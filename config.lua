@@ -15,7 +15,7 @@ Config.GangLocations = {
     {   -- example
         id = 'gang1',
         name = 'Gang Menu',
-        coords = vector3(-274.88, 805.72, 119.37),
+        coords = vector3(-266.74, 780.29949, 118.8219),
         showblip = true
     },
 

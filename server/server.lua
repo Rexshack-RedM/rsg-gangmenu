@@ -1,10 +1,6 @@
 local RSGCore = exports['rsg-core']:GetCoreObject()
 local GangAccounts = {}
 
--------------------------------------------------------------------------------------------
--- functions
--------------------------------------------------------------------------------------------
-
 function GetGangAccount(account)
     return GangAccounts[account] or 0
 end
@@ -15,7 +11,12 @@ function AddGangMoney(account, amount)
     end
 
     GangAccounts[account] = GangAccounts[account] + amount
-    MySQL.insert('INSERT INTO management_funds (job_name, amount, type) VALUES (:job_name, :amount, :type) ON DUPLICATE KEY UPDATE amount = :amount', { ['job_name'] = account, ['amount'] = GangAccounts[account], ['type'] = 'gang' })
+    MySQL.insert('INSERT INTO management_funds (job_name, amount, type) VALUES (:job_name, :amount, :type) ON DUPLICATE KEY UPDATE amount = :amount',
+        {
+            ['job_name'] = account,
+            ['amount'] = GangAccounts[account],
+            ['type'] = 'gang'
+        })
 end
 
 function RemoveGangMoney(account, amount)
@@ -44,9 +45,6 @@ MySQL.ready(function ()
     end
 end)
 
--------------------------------------------------------------------------------------------
--- withdraw money
--------------------------------------------------------------------------------------------
 RegisterNetEvent("rsg-gangmenu:server:withdrawMoney", function(amount)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
@@ -55,17 +53,16 @@ RegisterNetEvent("rsg-gangmenu:server:withdrawMoney", function(amount)
 
     local gang = Player.PlayerData.gang.name
     if RemoveGangMoney(gang, amount) then
-        Player.Functions.AddMoney("cash", amount, Lang:t('lang_24'))
-        TriggerEvent('rsg-log:server:CreateLog', 'gangmenu', Lang:t('lang_25'), 'yellow', Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname .. Lang:t('lang_26') .. amount .. ' (' .. gang .. ')', false)
-        TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_27') ..amount, "success")
+        Player.Functions.AddMoney("cash", amount, 'Gang menu withdraw')
+        TriggerEvent('rsg-log:server:CreateLog', 'gangmenu', 'Withdraw Money', 'yellow', Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname .. ' successfully withdrew $' .. amount .. ' (' .. gang .. ')', false)
+        TriggerClientEvent('RSGCore:Notify', src, "You have withdrawn: $" ..amount, "success")
     else
-        TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_28'), "error")
+        TriggerClientEvent('RSGCore:Notify', src, "You dont have enough money in the account!", "error")
     end
+
+    TriggerClientEvent('rsg-gangmenu:client:OpenMenu', src)
 end)
 
--------------------------------------------------------------------------------------------
--- deposit money
--------------------------------------------------------------------------------------------
 RegisterNetEvent("rsg-gangmenu:server:depositMoney", function(amount)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
@@ -75,21 +72,21 @@ RegisterNetEvent("rsg-gangmenu:server:depositMoney", function(amount)
     if Player.Functions.RemoveMoney("cash", amount) then
         local gang = Player.PlayerData.gang.name
         AddGangMoney(gang, amount)
-        TriggerEvent('rsg-log:server:CreateLog', 'gangmenu', Lang:t('lang_29'), 'yellow', Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname .. Lang:t('lang_30') .. amount .. ' (' .. gang .. ')', false)
-        TriggerClientEvent('RSGCore:Notify', src,Lang:t('lang_31') ..amount, "success")
+        TriggerEvent('rsg-log:server:CreateLog', 'gangmenu', 'Deposit Money', 'yellow', Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname .. ' successfully deposited $' .. amount .. ' (' .. gang .. ')', false)
+        TriggerClientEvent('RSGCore:Notify', src, "You have deposited: $" ..amount, "success")
     else
-        TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_32'), "error")
+        TriggerClientEvent('RSGCore:Notify', src, "You dont have enough money to add!", "error")
     end
+
+    TriggerClientEvent('rsg-gangmenu:client:OpenMenu', src)
 end)
 
-RSGCore.Functions.CreateCallback('rsg-gangmenu:server:GetAccount', function(_, cb, jobname)
-    local result = GetAccount(jobname)
-    cb(result)
+RSGCore.Functions.CreateCallback('rsg-gangmenu:server:GetAccount', function(_, cb, GangName)
+    local gangmoney = GetGangAccount(GangName)
+    cb(gangmoney)
 end)
 
--------------------------------------------------------------------------------------------
--- get employees
--------------------------------------------------------------------------------------------
+-- Get Employees
 RSGCore.Functions.CreateCallback('rsg-gangmenu:server:GetEmployees', function(source, cb, gangname)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
@@ -122,32 +119,29 @@ RSGCore.Functions.CreateCallback('rsg-gangmenu:server:GetEmployees', function(so
     cb(employees)
 end)
 
--------------------------------------------------------------------------------------------
--- grade update
--------------------------------------------------------------------------------------------
+-- Grade Change
 RegisterNetEvent('rsg-gangmenu:server:GradeUpdate', function(data)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local Employee = RSGCore.Functions.GetPlayerByCitizenId(data.cid)
 
     if not Player.PlayerData.gang.isboss then return end
-    if data.grade > Player.PlayerData.gang.grade.level then TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_33'), "error") return end
+    if data.grade > Player.PlayerData.gang.grade.level then TriggerClientEvent('RSGCore:Notify', src, "You cannot promote to this rank!", "error") return end
 
     if Employee then
         if Employee.Functions.SetGang(Player.PlayerData.gang.name, data.grade) then
-            TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_34'), "success")
-            TriggerClientEvent('RSGCore:Notify', Employee.PlayerData.source, Lang:t('lang_35') ..data.gradename..".", "success")
+            TriggerClientEvent('RSGCore:Notify', src, "Successfully promoted!", "success")
+            TriggerClientEvent('RSGCore:Notify', Employee.PlayerData.source, "You have been promoted to " ..data.gradename..".", "success")
         else
-            TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_36'), "error")
+            TriggerClientEvent('RSGCore:Notify', src, "Grade does not exist.", "error")
         end
     else
-        TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_37'), "error")
+        TriggerClientEvent('RSGCore:Notify', src, "Civilian is not in city.", "error")
     end
+    TriggerClientEvent('rsg-gangmenu:client:OpenMenu', src)
 end)
 
--------------------------------------------------------------------------------------------
--- fire employee
--------------------------------------------------------------------------------------------
+-- Fire Member
 RegisterNetEvent('rsg-gangmenu:server:FireMember', function(target)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
@@ -157,23 +151,23 @@ RegisterNetEvent('rsg-gangmenu:server:FireMember', function(target)
 
     if Employee then
         if target ~= Player.PlayerData.citizenid then
-            if Employee.PlayerData.gang.grade.level > Player.PlayerData.gang.grade.level then TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_38'), "error") return end
+            if Employee.PlayerData.gang.grade.level > Player.PlayerData.gang.grade.level then TriggerClientEvent('RSGCore:Notify', src, "You cannot fire this citizen!", "error") return end
             if Employee.Functions.SetGang("none", '0') then
-                TriggerEvent("rsg-log:server:CreateLog", "gangmenu", Lang:t('lang_39'), "orange", Player.PlayerData.charinfo.firstname .. " " .. Player.PlayerData.charinfo.lastname .. Lang:t('lang_40') .. Employee.PlayerData.charinfo.firstname .. " " .. Employee.PlayerData.charinfo.lastname .. " (" .. Player.PlayerData.gang.name .. ")", false)
-                TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_41'), "success")
-                TriggerClientEvent('RSGCore:Notify', Employee.PlayerData.source , Lang:t('lang_42'), "error")
+                TriggerEvent("rsg-log:server:CreateLog", "gangmenu", "Gang Fire", "orange", Player.PlayerData.charinfo.firstname .. " " .. Player.PlayerData.charinfo.lastname .. ' successfully fired ' .. Employee.PlayerData.charinfo.firstname .. " " .. Employee.PlayerData.charinfo.lastname .. " (" .. Player.PlayerData.gang.name .. ")", false)
+                TriggerClientEvent('RSGCore:Notify', src, "Gang Member fired!", "success")
+                TriggerClientEvent('RSGCore:Notify', Employee.PlayerData.source , "You have been expelled from the gang!", "error")
             else
-                TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_43'), "error")
+                TriggerClientEvent('RSGCore:Notify', src, "Error.", "error")
             end
         else
-            TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_44'), "error")
+            TriggerClientEvent('RSGCore:Notify', src, "You can\'t kick yourself out of the gang!", "error")
         end
     else
         local player = MySQL.query.await('SELECT * FROM players WHERE citizenid = ? LIMIT 1', {target})
         if player[1] ~= nil then
             Employee = player[1]
             Employee.gang = json.decode(Employee.gang)
-            if Employee.gang.grade.level > Player.PlayerData.job.grade.level then TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_45'), "error") return end
+            if Employee.gang.grade.level > Player.PlayerData.job.grade.level then TriggerClientEvent('RSGCore:Notify', src, "You cannot fire this citizen!", "error") return end
             local gang = {}
             gang.name = "none"
             gang.label = "No Affiliation"
@@ -184,17 +178,16 @@ RegisterNetEvent('rsg-gangmenu:server:FireMember', function(target)
             gang.grade.name = nil
             gang.grade.level = 0
             MySQL.update('UPDATE players SET gang = ? WHERE citizenid = ?', {json.encode(gang), target})
-            TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_41'), "success")
-            TriggerEvent("rsg-log:server:CreateLog", "gangmenu", Lang:t('lang_39'), "orange", Player.PlayerData.charinfo.firstname .. " " .. Player.PlayerData.charinfo.lastname .. Lang:t('lang_40') .. Employee.PlayerData.charinfo.firstname .. " " .. Employee.PlayerData.charinfo.lastname .. " (" .. Player.PlayerData.gang.name .. ")", false)
+            TriggerClientEvent('RSGCore:Notify', src, "Gang member fired!", "success")
+            TriggerEvent("rsg-log:server:CreateLog", "gangmenu", "Gang Fire", "orange", Player.PlayerData.charinfo.firstname .. " " .. Player.PlayerData.charinfo.lastname .. ' successfully fired ' .. Employee.PlayerData.charinfo.firstname .. " " .. Employee.PlayerData.charinfo.lastname .. " (" .. Player.PlayerData.gang.name .. ")", false)
         else
-            TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_37'), "error")
+            TriggerClientEvent('RSGCore:Notify', src, "Civilian is not in city.", "error")
         end
     end
+    TriggerClientEvent('rsg-gangmenu:client:OpenMenu', src)
 end)
 
--------------------------------------------------------------------------------------------
--- hire employee
--------------------------------------------------------------------------------------------
+-- Recruit Player
 RegisterNetEvent('rsg-gangmenu:server:HireMember', function(recruit)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
@@ -203,15 +196,14 @@ RegisterNetEvent('rsg-gangmenu:server:HireMember', function(recruit)
     if not Player.PlayerData.gang.isboss then return end
 
     if Target and Target.Functions.SetGang(Player.PlayerData.gang.name, 0) then
-        TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_46') .. (Target.PlayerData.charinfo.firstname .. ' ' .. Target.PlayerData.charinfo.lastname) .. Lang:t('lang_47') .. Player.PlayerData.gang.label .. "", "success")
-        TriggerClientEvent('RSGCore:Notify', Target.PlayerData.source , Lang:t('lang_48') .. Player.PlayerData.gang.label .. "", "success")
-        TriggerEvent('rsg-log:server:CreateLog', 'gangmenu', Lang:t('lang_49'), 'yellow', (Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname).. Lang:t('lang_50') .. Target.PlayerData.charinfo.firstname .. ' ' .. Target.PlayerData.charinfo.lastname .. ' (' .. Player.PlayerData.gang.name .. ')', false)
+        TriggerClientEvent('RSGCore:Notify', src, "You hired " .. (Target.PlayerData.charinfo.firstname .. ' ' .. Target.PlayerData.charinfo.lastname) .. " come " .. Player.PlayerData.gang.label .. "", "success")
+        TriggerClientEvent('RSGCore:Notify', Target.PlayerData.source , "You have been hired as " .. Player.PlayerData.gang.label .. "", "success")
+        TriggerEvent('rsg-log:server:CreateLog', 'gangmenu', 'Recruit', 'yellow', (Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname).. ' successfully recruited ' .. Target.PlayerData.charinfo.firstname .. ' ' .. Target.PlayerData.charinfo.lastname .. ' (' .. Player.PlayerData.gang.name .. ')', false)
     end
+    TriggerClientEvent('rsg-gangmenu:client:OpenMenu', src)
 end)
 
--------------------------------------------------------------------------------------------
--- get closest player
--------------------------------------------------------------------------------------------
+-- Get closest player sv
 RSGCore.Functions.CreateCallback('rsg-gangmenu:getplayers', function(source, cb)
     local src = source
     local players = {}
@@ -226,7 +218,7 @@ RSGCore.Functions.CreateCallback('rsg-gangmenu:getplayers', function(source, cb)
             players[#players+1] = {
             id = v,
             coords = GetEntityCoords(targetped),
-            name = ped.PlayerData.charinfo.firstname .. ' ' .. ped.PlayerData.charinfo.lastname,
+            name = ped.PlayerData.charinfo.firstname .. " " .. ped.PlayerData.charinfo.lastname,
             citizenid = ped.PlayerData.citizenid,
             sources = GetPlayerPed(ped.PlayerData.source),
             sourceplayer = ped.PlayerData.source

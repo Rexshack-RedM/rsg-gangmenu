@@ -15,7 +15,7 @@ RegisterNetEvent('RSGCore:Client:OnJobUpdate', function(JobInfo)
     PlayerGang = InfoGang
 end)
 
-local function comma_value(amount)
+local function comma_valueGang(amount)
     local formatted = amount
     while true do
         local k
