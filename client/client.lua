@@ -160,7 +160,7 @@ RegisterNetEvent('rsg-gangmenu:client:HireMenu', function()
                     title = v.name,
                     description = Lang:t('lang_15') .. v.citizenid .. Lang:t('lang_16') .. v.sourceplayer,
                     icon = 'fa-solid fa-user-check',
-                    event = 'rsg-gangmenu:server:HireEmployee',
+                    serverEvent = 'rsg-gangmenu:server:HireEmployee',
                     args = v.sourceplayer,
                     arrow = true
                 }
