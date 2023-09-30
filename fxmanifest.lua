@@ -7,6 +7,7 @@ game 'rdr3'
 
 author 'RexShack#3041'
 description 'rsg-gangmenu'
+version '1.0.0'
 
 shared_scripts {
     '@ox_lib/init.lua',
