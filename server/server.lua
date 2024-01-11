@@ -31,7 +31,8 @@ local function CheckVersion()
 end
 
 -----------------------------------------------------------------------
-
+-- functions
+-----------------------------------------------------------------------
 function GetGangAccount(account)
     return GangAccounts[account] or 0
 end
@@ -67,6 +68,9 @@ function RemoveGangMoney(account, amount)
     return isRemoved
 end
 
+-----------------------------------------------------------------------
+-- sql
+-----------------------------------------------------------------------
 MySQL.ready(function ()
     local gangmenu = MySQL.query.await('SELECT job_name,amount FROM management_funds WHERE type = "gang"', {})
     if not gangmenu then return end
@@ -76,6 +80,9 @@ MySQL.ready(function ()
     end
 end)
 
+-----------------------------------------------------------------------
+-- money
+-----------------------------------------------------------------------
 RegisterNetEvent("rsg-gangmenu:server:withdrawMoney", function(amount)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
@@ -86,9 +93,9 @@ RegisterNetEvent("rsg-gangmenu:server:withdrawMoney", function(amount)
     if RemoveGangMoney(gang, amount) then
         Player.Functions.AddMoney("cash", amount, Lang:t('lang_24'))
         TriggerEvent('rsg-log:server:CreateLog', 'gangmenu', Lang:t('lang_25'), 'yellow', Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname .. Lang:t('lang_51') .. amount .. ' (' .. gang .. ')', false)
-        TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_27') ..amount, "success")
+        TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_27') ..amount, type = 'inform', duration = 5000 })
     else
-        TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_28'), "error")
+        TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_28'), type = 'error', duration = 5000 })
     end
 end)
 
@@ -102,9 +109,9 @@ RegisterNetEvent("rsg-gangmenu:server:depositMoney", function(amount)
         local gang = Player.PlayerData.gang.name
         AddGangMoney(gang, amount)
         TriggerEvent('rsg-log:server:CreateLog', 'gangmenu', Lang:t('lang_29'), 'yellow', Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname .. Lang:t('lang_52') .. amount .. ' (' .. gang .. ')', false)
-        TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_31') ..amount, "success")
+        TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_31') ..amount, type = 'inform', duration = 5000 })
     else
-        TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_32'), "error")
+        TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_32'), type = 'error', duration = 5000 })
     end
 end)
 
@@ -113,7 +120,9 @@ RSGCore.Functions.CreateCallback('rsg-gangmenu:server:GetAccount', function(_, c
     cb(gangmoney)
 end)
 
+-----------------------------------------------------------------------
 -- Get Employees
+-----------------------------------------------------------------------
 RSGCore.Functions.CreateCallback('rsg-gangmenu:server:GetEmployees', function(source, cb, gangname)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
@@ -146,28 +155,32 @@ RSGCore.Functions.CreateCallback('rsg-gangmenu:server:GetEmployees', function(so
     cb(employees)
 end)
 
+-----------------------------------------------------------------------
 -- Grade Change
+-----------------------------------------------------------------------
 RegisterNetEvent('rsg-gangmenu:server:GradeUpdate', function(data)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
     local Employee = RSGCore.Functions.GetPlayerByCitizenId(data.cid)
 
     if not Player.PlayerData.gang.isboss then return end
-    if data.grade > Player.PlayerData.gang.grade.level then TriggerClientEvent('RSGCore:Notify', src, "You cannot promote to this rank!", "error") return end
+    if data.grade > Player.PlayerData.gang.grade.level then TriggerClientEvent('ox_lib:notify', src, {title = "You cannot promote to this rank!", type = 'error', duration = 5000 }) return end
 
     if Employee then
         if Employee.Functions.SetGang(Player.PlayerData.gang.name, data.grade) then
-            TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_34'), "success")
-            TriggerClientEvent('RSGCore:Notify', Employee.PlayerData.source, Lang:t('lang_35')..data.gradename..".", "success")
+            TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_34'), type = 'inform', duration = 5000 })
+            TriggerClientEvent('ox_lib:notify', Employee.PlayerData.source, {title = Lang:t('lang_35')..data.gradename..".", type = 'inform', duration = 5000 })
         else
-            TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_36'), "error")
+            TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_36'), type = 'error', duration = 5000 })
         end
     else
-        TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_37'), "error")
+        TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_37'), type = 'error', duration = 5000 })
     end
 end)
 
+-----------------------------------------------------------------------
 -- Fire Member
+-----------------------------------------------------------------------
 RegisterNetEvent('rsg-gangmenu:server:FireMember', function(target)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
@@ -177,23 +190,23 @@ RegisterNetEvent('rsg-gangmenu:server:FireMember', function(target)
 
     if Employee then
         if target ~= Player.PlayerData.citizenid then
-            if Employee.PlayerData.gang.grade.level > Player.PlayerData.gang.grade.level then TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_38'), "error") return end
+            if Employee.PlayerData.gang.grade.level > Player.PlayerData.gang.grade.level then TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_38'), type = 'error', duration = 5000 }) return end
             if Employee.Functions.SetGang("none", '0') then
                 TriggerEvent("rsg-log:server:CreateLog", "gangmenu", Lang:t('lang_39'), "orange", Player.PlayerData.charinfo.firstname .. " " .. Player.PlayerData.charinfo.lastname .. Lang:t('lang_40') .. Employee.PlayerData.charinfo.firstname .. " " .. Employee.PlayerData.charinfo.lastname .. " (" .. Player.PlayerData.gang.name .. ")", false)
-                TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_41'), "success")
-                TriggerClientEvent('RSGCore:Notify', Employee.PlayerData.source , Lang:t('lang_42'), "error")
+                TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_41'), type = 'inform', duration = 5000 })
+                TriggerClientEvent('ox_lib:notify', Employee.PlayerData.source, {title = Lang:t('lang_42'), type = 'error', duration = 5000 })
             else
-                TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_43'), "error")
+                TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_43'), type = 'error', duration = 5000 })
             end
         else
-            TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_44'), "error")
+            TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_44'), type = 'error', duration = 5000 })
         end
     else
         local player = MySQL.query.await('SELECT * FROM players WHERE citizenid = ? LIMIT 1', {target})
         if player[1] ~= nil then
             Employee = player[1]
             Employee.gang = json.decode(Employee.gang)
-            if Employee.gang.grade.level > Player.PlayerData.job.grade.level then TriggerClientEvent('RSGCore:Notify', src, "You cannot fire this citizen!", "error") return end
+            if Employee.gang.grade.level > Player.PlayerData.job.grade.level then TriggerClientEvent('ox_lib:notify', src, {title = "You cannot fire this citizen!", type = 'error', duration = 5000 }) return end
             local gang = {}
             gang.name = "none"
             gang.label = "No Affiliation"
@@ -204,15 +217,17 @@ RegisterNetEvent('rsg-gangmenu:server:FireMember', function(target)
             gang.grade.name = nil
             gang.grade.level = 0
             MySQL.update('UPDATE players SET gang = ? WHERE citizenid = ?', {json.encode(gang), target})
-            TriggerClientEvent('RSGCore:Notify', src, "Gang member fired!", "success")
+            TriggerClientEvent('ox_lib:notify', src, {title = "Gang member fired!", type = 'inform', duration = 5000 })
             TriggerEvent("rsg-log:server:CreateLog", "gangmenu", Lang:t('lang_39'), "orange", Player.PlayerData.charinfo.firstname .. " " .. Player.PlayerData.charinfo.lastname .. Lang:t('lang_40') .. Employee.PlayerData.charinfo.firstname .. " " .. Employee.PlayerData.charinfo.lastname .. " (" .. Player.PlayerData.gang.name .. ")", false)
         else
-            TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_37'), "error")
+            TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_37'), type = 'error', duration = 5000 })
         end
     end
 end)
 
+-----------------------------------------------------------------------
 -- Recruit Player
+-----------------------------------------------------------------------
 RegisterNetEvent('rsg-gangmenu:server:HireMember', function(recruit)
     local src = source
     local Player = RSGCore.Functions.GetPlayer(src)
@@ -221,13 +236,15 @@ RegisterNetEvent('rsg-gangmenu:server:HireMember', function(recruit)
     if not Player.PlayerData.gang.isboss then return end
 
     if Target and Target.Functions.SetGang(Player.PlayerData.gang.name, 0) then
-        TriggerClientEvent('RSGCore:Notify', src, Lang:t('lang_46') .. (Target.PlayerData.charinfo.firstname .. ' ' .. Target.PlayerData.charinfo.lastname) .. Lang:t('lang_47') .. Player.PlayerData.gang.label .. "", "success")
-        TriggerClientEvent('RSGCore:Notify', Target.PlayerData.source , Lang:t('lang_48') .. Player.PlayerData.gang.label .. "", "success")
+        TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_46') .. (Target.PlayerData.charinfo.firstname .. ' ' .. Target.PlayerData.charinfo.lastname) .. Lang:t('lang_47') .. Player.PlayerData.gang.label .. "", type = 'inform', duration = 5000 })
+        TriggerClientEvent('ox_lib:notify', Target.PlayerData.source, {title = Lang:t('lang_48') .. Player.PlayerData.gang.label .. "", type = 'inform', duration = 5000 })
         TriggerEvent('rsg-log:server:CreateLog', 'gangmenu', Lang:t('lang_49'), 'yellow', (Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname).. Lang:t('lang_50') .. Target.PlayerData.charinfo.firstname .. ' ' .. Target.PlayerData.charinfo.lastname .. ' (' .. Player.PlayerData.gang.name .. ')', false)
     end
 end)
 
+-----------------------------------------------------------------------
 -- Get closest player sv
+-----------------------------------------------------------------------
 RSGCore.Functions.CreateCallback('rsg-gangmenu:getplayers', function(source, cb)
     local src = source
     local players = {}
