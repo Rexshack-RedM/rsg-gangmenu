@@ -1,13 +1,9 @@
--- FX Information
 fx_version 'cerulean'
-use_experimental_fxv2_oal 'yes'
-lua54 'yes'
 rdr3_warning 'I acknowledge that this is a prerelease build of RedM, and I am aware my resources *will* become incompatible once RedM ships.'
 game 'rdr3'
 
-author 'RexShack#3041'
 description 'rsg-gangmenu'
-version '1.0.1'
+version '1.0.2'
 
 shared_scripts {
     '@ox_lib/init.lua',
@@ -35,3 +31,5 @@ dependencies {
     'rsg-core',
     'ox_lib',
 }
+
+lua54 'yes'
