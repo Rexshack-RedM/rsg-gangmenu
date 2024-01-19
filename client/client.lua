@@ -133,7 +133,7 @@ RegisterNetEvent('rsg-gangmenu:client:ManageEmployee', function(data)
     options[#options + 1] = {
         title = Lang:t('lang_13'),
         icon = "fa-solid fa-user-large-slash",
-        serverEvent = 'rsg-gangmenu:server:FireEmployee',
+        serverEvent = 'rsg-gangmenu:server:FireMember',
         args = data.player.empSource,
         iconColor = 'red'
     }
