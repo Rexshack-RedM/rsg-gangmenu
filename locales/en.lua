@@ -52,6 +52,7 @@ local Translations = {
     lang_50 = ' successfully recruited ',
 	lang_51 = ' successfully withdrew $',
 	lang_52 = ' successfully deposited $',
+	lang_53 = 'Open ',
 
 }
 
