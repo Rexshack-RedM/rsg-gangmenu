@@ -9,6 +9,8 @@ Config.Blip = {
 
 -- settings
 Config.Keybind = 'J'
+Config.StorageMaxWeight = 4000000
+Config.StorageMaxSlots = 50
 
 Config.GangLocations = {
 

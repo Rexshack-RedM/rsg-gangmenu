@@ -242,3 +242,15 @@ RSGCore.Functions.CreateCallback('rsg-gangmenu:getplayers', function(source, cb)
         end)
     cb(players)
 end)
+
+---------------------------------
+-- gangmenu storage
+---------------------------------
+RegisterNetEvent('rsg-gangmenu:server:openstash', function(stash)
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    local data = { label = 'Gang Storage', maxweight = Config.StorageMaxWeight, slots = Config.StorageMaxSlots }
+    local stashName = stash
+    exports['rsg-inventory']:OpenInventory(src, stashName, data)
+end)

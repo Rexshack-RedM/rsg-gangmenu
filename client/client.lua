@@ -179,14 +179,11 @@ RegisterNetEvent('rsg-gangmenu:client:HireMenu', function()
 end)
 
 -------------------------------------------------------------------------------------------
--- boss stash
+-- gang stash
 -------------------------------------------------------------------------------------------
 RegisterNetEvent('rsg-gangmenu:client:Stash', function()
-    TriggerServerEvent("inventory:server:OpenInventory", "stash", "gang_" .. PlayerGang.name, {
-        maxweight = 4000000,
-        slots = 25,
-    })
-    TriggerEvent("inventory:client:SetCurrentStash", "gang_" .. PlayerGang.name)
+    local stashname = 'gang_' .. PlayerGang.name
+    TriggerServerEvent('rsg-gangmenu:server:openstash', stashname)
 end)
 
 -------------------------------------------------------------------------------------------
