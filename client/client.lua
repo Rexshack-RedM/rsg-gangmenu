@@ -1,5 +1,6 @@
 local RSGCore = exports['rsg-core']:GetCoreObject()
 local PlayerGang = RSGCore.Functions.GetPlayerData().gang
+lib.locale()
 
 AddEventHandler('onResourceStart', function(resource)
     if resource == GetCurrentResourceName() then
@@ -32,7 +33,7 @@ end
 -------------------------------------------------------------------------------------------
 CreateThread(function()
     for _, v in pairs(Config.GangLocations) do
-        exports['rsg-core']:createPrompt(v.id, v.coords, RSGCore.Shared.Keybinds[Config.Keybind], Lang:t('lang_53')..v.name, {
+        exports['rsg-core']:createPrompt(v.id, v.coords, RSGCore.Shared.Keybinds[Config.Keybind], locale('cl_open').. ' ' ..v.name, {
             type = 'client',
             event = 'rsg-gangmenu:client:mainmenu',
             args = {},
@@ -53,32 +54,32 @@ RegisterNetEvent('rsg-gangmenu:client:mainmenu', function()
     if not PlayerGang.name or not PlayerGang.isboss then return end
     lib.registerContext({
         id = 'gang_mainmenu',
-        title = Lang:t('lang_1'),
+        title = locale('cl_1'),
         options = {
             {
-                title = Lang:t('lang_2'),
-                description = Lang:t('lang_3'),
+                title = locale('cl_2'),
+                description = locale('cl_3'),
                 icon = 'fa-solid fa-list',
                 event = 'rsg-gangmenu:client:employeelist',
                 arrow = true
             },
             {
-                title = Lang:t('lang_4'),
-                description = Lang:t('lang_5'),
+                title = locale('cl_4'),
+                description = locale('cl_5'),
                 icon = 'fa-solid fa-hand-holding',
                 event = 'rsg-gangmenu:client:HireMenu',
                 arrow = true
             },
             {
-                title = Lang:t('lang_6'),
-                description = Lang:t('lang_7'),
+                title = locale('cl_6'),
+                description = locale('cl_7'),
                 icon = "fa-solid fa-box-open",
                 event = 'rsg-gangmenu:client:Stash',
                 arrow = true
             },
             {
-                title = Lang:t('lang_8'),
-                description = Lang:t('lang_9'),
+                title = locale('cl_8'),
+                description = locale('cl_9'),
                 icon = "fa-solid fa-sack-dollar",
                 event = 'rsg-gangmenu:client:SocietyMenu',
                 arrow = true
@@ -106,7 +107,7 @@ RegisterNetEvent('rsg-gangmenu:client:employeelist', function()
         end
         lib.registerContext({
             id = 'employeelist_menu',
-            title = Lang:t('lang_10'),
+            title = locale('cl_10'),
             menu = 'gang_mainmenu',
             onBack = function() end,
             position = 'top-right',
@@ -123,15 +124,15 @@ RegisterNetEvent('rsg-gangmenu:client:ManageEmployee', function(data)
     local options = {}
     for k, v in pairs(RSGCore.Shared.Gangs[data.work.name].grades) do
         options[#options + 1] = {
-            title = Lang:t('lang_11')..v.name,
-            description = Lang:t('lang_12') .. k,
+            title = locale('cl_11').. ' ' ..v.name,
+            description = locale('cl_12').. ': ' .. k,
             icon = 'fa-solid fa-file-pen',
             serverEvent = 'rsg-gangmenu:server:GradeUpdate',
             args = { cid = data.player.empSource, grade = tonumber(k), gradename = v.name }
         }
     end
     options[#options + 1] = {
-        title = Lang:t('lang_13'),
+        title = locale('cl_13'),
         icon = "fa-solid fa-user-large-slash",
         serverEvent = 'rsg-gangmenu:server:FireMember',
         args = data.player.empSource,
@@ -139,7 +140,7 @@ RegisterNetEvent('rsg-gangmenu:client:ManageEmployee', function(data)
     }
     lib.registerContext({
         id = 'managemembers_menu',
-        title = Lang:t('lang_14'),
+        title = locale('cl_14'),
         menu = 'employeelist_menu',
         onBack = function() end,
         position = 'top-right',
@@ -158,7 +159,7 @@ RegisterNetEvent('rsg-gangmenu:client:HireMenu', function()
             if v and v ~= PlayerId() then
                 options[#options + 1] = {
                     title = v.name,
-                    description = Lang:t('lang_15') .. v.citizenid .. Lang:t('lang_16') .. v.sourceplayer,
+                    description = locale('cl_15').. ': ' .. v.citizenid .. ' - '.. locale('cl_16') .. ': '.. v.sourceplayer,
                     icon = 'fa-solid fa-user-check',
                     serverEvent = 'rsg-gangmenu:server:HireMember',
                     args = v.sourceplayer,
@@ -168,7 +169,7 @@ RegisterNetEvent('rsg-gangmenu:client:HireMenu', function()
         end
         lib.registerContext({
             id = 'hiremembers_menu',
-            title = Lang:t('lang_4'),
+            title = locale('cl_4'),
             menu = 'gang_mainmenu',
             onBack = function() end,
             position = 'top-right',
@@ -179,11 +180,11 @@ RegisterNetEvent('rsg-gangmenu:client:HireMenu', function()
 end)
 
 -------------------------------------------------------------------------------------------
--- gang stash
+-- boss stash
 -------------------------------------------------------------------------------------------
 RegisterNetEvent('rsg-gangmenu:client:Stash', function()
     local stashname = 'gang_' .. PlayerGang.name
-    TriggerServerEvent('rsg-gangmenu:server:openstash', stashname)
+    TriggerServerEvent('rsg-gangmenu:server:openinventory', stashname)
 end)
 
 -------------------------------------------------------------------------------------------
@@ -194,11 +195,11 @@ RegisterNetEvent('rsg-gangmenu:client:SocietyMenu', function()
     RSGCore.Functions.TriggerCallback('rsg-gangmenu:server:GetAccount', function(cb)
         lib.registerContext({
             id = 'gangsociety_menu',
-            title = Lang:t('lang_17') .. comma_valueGang(cb),
+            title = locale('cl_17').. ': $ ' .. comma_valueGang(cb),
             options = {
                 {
-                    title = Lang:t('lang_18'),
-                    description = Lang:t('lang_19'),
+                    title = locale('cl_18'),
+                    description = locale('cl_19'),
                     icon = 'fa-solid fa-money-bill-transfer',
                     event = 'rsg-gangmenu:client:SocetyDeposit',
                     args = currentmoney,
@@ -206,8 +207,8 @@ RegisterNetEvent('rsg-gangmenu:client:SocietyMenu', function()
                     arrow = true
                 },
                 {
-                    title = Lang:t('lang_20'),
-                    description = Lang:t('lang_21'),
+                    title = locale('cl_20'),
+                    description = locale('cl_21'),
                     icon = 'fa-solid fa-money-bill-transfer',
                     event = 'rsg-gangmenu:client:SocetyWithDraw',
                     args = comma_valueGang(cb),
@@ -224,9 +225,9 @@ end)
 -- society deposit
 -------------------------------------------------------------------------------------------
 RegisterNetEvent('rsg-gangmenu:client:SocetyDeposit', function(money)
-    local input = lib.inputDialog(Lang:t('lang_22') .. money, {
+    local input = lib.inputDialog(locale('cl_22').. ': $ ' .. money, {
         { 
-            label = Lang:t('lang_23'),
+            label = locale('cl_23'),
             type = 'number',
             required = true,
             icon = 'fa-solid fa-dollar-sign'
@@ -240,9 +241,9 @@ end)
 -- society withdraw
 -------------------------------------------------------------------------------------------
 RegisterNetEvent('rsg-gangmenu:client:SocetyWithDraw', function(money)
-    local input = lib.inputDialog(Lang:t('lang_22') .. money, {
+    local input = lib.inputDialog(locale('cl_22').. ': $ ' .. money, {
         { 
-            label = Lang:t('lang_23'),
+            label = locale('cl_23'),
             type = 'number',
             required = true,
             icon = 'fa-solid fa-dollar-sign'
