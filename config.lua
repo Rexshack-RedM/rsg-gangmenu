@@ -15,9 +15,9 @@ Config.StorageMaxSlots = 50
 Config.GangLocations = {
 
     {   -- example
-        id = 'gang1',
+        id = 'example',
         name = 'Gang Menu',
-        coords = vector3(0, 0, 0),
+        coords = vector3(-4233.26, -3506.28, 37.07),
         showblip = false
     },
 
