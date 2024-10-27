@@ -1,5 +1,17 @@
 local RSGCore = exports['rsg-core']:GetCoreObject()
 local GangAccounts = {}
+lib.locale()
+
+---------------
+-- stash
+----------------
+RegisterNetEvent('rsg-gangmenu:server:openinventory', function(stashName)
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(src)
+    if not Player then return end
+    local data = { label = locale('sv_storage'), maxweight = Config.StorageMaxWeight, slots = Config.StorageMaxSlots }
+    exports['rsg-inventory']:OpenInventory(src, stashName, data)
+end)
 
 -----------------------------------------------------------------------
 -- functions
@@ -62,11 +74,11 @@ RegisterNetEvent("rsg-gangmenu:server:withdrawMoney", function(amount)
 
     local gang = Player.PlayerData.gang.name
     if RemoveGangMoney(gang, amount) then
-        Player.Functions.AddMoney("cash", amount, Lang:t('lang_24'))
-        TriggerEvent('rsg-log:server:CreateLog', 'gangmenu', Lang:t('lang_25'), 'yellow', Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname .. Lang:t('lang_51') .. amount .. ' (' .. gang .. ')', false)
-        TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_27') ..amount, type = 'inform', duration = 5000 })
+        Player.Functions.AddMoney("cash", amount, locale('sv_24'))
+        TriggerEvent('rsg-log:server:CreateLog', 'gangmenu', locale('sv_25'), 'yellow', Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname .. ' ' .. locale('sv_51') .. ' $ ' .. amount .. ' (' .. gang .. ')', false)
+        TriggerClientEvent('ox_lib:notify', src, {title = locale('sv_27') ..': $ ' ..amount, type = 'inform', duration = 5000 })
     else
-        TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_28'), type = 'error', duration = 5000 })
+        TriggerClientEvent('ox_lib:notify', src, {title = locale('sv_28'), type = 'error', duration = 5000 })
     end
 end)
 
@@ -79,10 +91,10 @@ RegisterNetEvent("rsg-gangmenu:server:depositMoney", function(amount)
     if Player.Functions.RemoveMoney("cash", amount) then
         local gang = Player.PlayerData.gang.name
         AddGangMoney(gang, amount)
-        TriggerEvent('rsg-log:server:CreateLog', 'gangmenu', Lang:t('lang_29'), 'yellow', Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname .. Lang:t('lang_52') .. amount .. ' (' .. gang .. ')', false)
-        TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_31') ..amount, type = 'inform', duration = 5000 })
+        TriggerEvent('rsg-log:server:CreateLog', 'gangmenu', locale('sv_29'), 'yellow', Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname ..' ' .. locale('sv_52') .. ' $ '.. amount .. ' (' .. gang .. ')', false)
+        TriggerClientEvent('ox_lib:notify', src, {title = locale('sv_31') ..': $ ' ..amount, type = 'inform', duration = 5000 })
     else
-        TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_32'), type = 'error', duration = 5000 })
+        TriggerClientEvent('ox_lib:notify', src, {title = locale('sv_32'), type = 'error', duration = 5000 })
     end
 end)
 
@@ -139,13 +151,13 @@ RegisterNetEvent('rsg-gangmenu:server:GradeUpdate', function(data)
 
     if Employee then
         if Employee.Functions.SetGang(Player.PlayerData.gang.name, data.grade) then
-            TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_34'), type = 'inform', duration = 5000 })
-            TriggerClientEvent('ox_lib:notify', Employee.PlayerData.source, {title = Lang:t('lang_35')..data.gradename..".", type = 'inform', duration = 5000 })
+            TriggerClientEvent('ox_lib:notify', src, {title = locale('sv_34'), type = 'inform', duration = 5000 })
+            TriggerClientEvent('ox_lib:notify', Employee.PlayerData.source, {title = locale('sv_35')..': ' ..data.gradename..".", type = 'inform', duration = 5000 })
         else
-            TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_36'), type = 'error', duration = 5000 })
+            TriggerClientEvent('ox_lib:notify', src, {title = locale('sv_36'), type = 'error', duration = 5000 })
         end
     else
-        TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_37'), type = 'error', duration = 5000 })
+        TriggerClientEvent('ox_lib:notify', src, {title = locale('sv_37'), type = 'error', duration = 5000 })
     end
 end)
 
@@ -161,16 +173,16 @@ RegisterNetEvent('rsg-gangmenu:server:FireMember', function(target)
 
     if Employee then
         if target ~= Player.PlayerData.citizenid then
-            if Employee.PlayerData.gang.grade.level > Player.PlayerData.gang.grade.level then TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_38'), type = 'error', duration = 5000 }) return end
+            if Employee.PlayerData.gang.grade.level > Player.PlayerData.gang.grade.level then TriggerClientEvent('ox_lib:notify', src, {title = locale('sv_38'), type = 'error', duration = 5000 }) return end
             if Employee.Functions.SetGang("none", '0') then
-                TriggerEvent("rsg-log:server:CreateLog", "gangmenu", Lang:t('lang_39'), "orange", Player.PlayerData.charinfo.firstname .. " " .. Player.PlayerData.charinfo.lastname .. Lang:t('lang_40') .. Employee.PlayerData.charinfo.firstname .. " " .. Employee.PlayerData.charinfo.lastname .. " (" .. Player.PlayerData.gang.name .. ")", false)
-                TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_41'), type = 'inform', duration = 5000 })
-                TriggerClientEvent('ox_lib:notify', Employee.PlayerData.source, {title = Lang:t('lang_42'), type = 'error', duration = 5000 })
+                TriggerEvent("rsg-log:server:CreateLog", "gangmenu", locale('sv_39'), "orange", Player.PlayerData.charinfo.firstname .. " " .. Player.PlayerData.charinfo.lastname ..' ' .. locale('sv_40') ..' ' .. Employee.PlayerData.charinfo.firstname .. " " .. Employee.PlayerData.charinfo.lastname .. " (" .. Player.PlayerData.gang.name .. ")", false)
+                TriggerClientEvent('ox_lib:notify', src, {title = locale('sv_41'), type = 'inform', duration = 5000 })
+                TriggerClientEvent('ox_lib:notify', Employee.PlayerData.source, {title = locale('sv_42'), type = 'error', duration = 5000 })
             else
-                TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_43'), type = 'error', duration = 5000 })
+                TriggerClientEvent('ox_lib:notify', src, {title = locale('sv_43'), type = 'error', duration = 5000 })
             end
         else
-            TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_44'), type = 'error', duration = 5000 })
+            TriggerClientEvent('ox_lib:notify', src, {title = locale('sv_44'), type = 'error', duration = 5000 })
         end
     else
         local player = MySQL.query.await('SELECT * FROM players WHERE citizenid = ? LIMIT 1', {target})
@@ -189,9 +201,9 @@ RegisterNetEvent('rsg-gangmenu:server:FireMember', function(target)
             gang.grade.level = 0
             MySQL.update('UPDATE players SET gang = ? WHERE citizenid = ?', {json.encode(gang), target})
             TriggerClientEvent('ox_lib:notify', src, {title = "Gang member fired!", type = 'inform', duration = 5000 })
-            TriggerEvent("rsg-log:server:CreateLog", "gangmenu", Lang:t('lang_39'), "orange", Player.PlayerData.charinfo.firstname .. " " .. Player.PlayerData.charinfo.lastname .. Lang:t('lang_40') .. Employee.PlayerData.charinfo.firstname .. " " .. Employee.PlayerData.charinfo.lastname .. " (" .. Player.PlayerData.gang.name .. ")", false)
+            TriggerEvent("rsg-log:server:CreateLog", "gangmenu", locale('sv_39'), "orange", Player.PlayerData.charinfo.firstname .. " " .. Player.PlayerData.charinfo.lastname ..' ' .. locale('sv_40') ..' ' .. Employee.PlayerData.charinfo.firstname .. " " .. Employee.PlayerData.charinfo.lastname .. " (" .. Player.PlayerData.gang.name .. ")", false)
         else
-            TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_37'), type = 'error', duration = 5000 })
+            TriggerClientEvent('ox_lib:notify', src, {title = locale('sv_37'), type = 'error', duration = 5000 })
         end
     end
 end)
@@ -207,9 +219,9 @@ RegisterNetEvent('rsg-gangmenu:server:HireMember', function(recruit)
     if not Player.PlayerData.gang.isboss then return end
 
     if Target and Target.Functions.SetGang(Player.PlayerData.gang.name, 0) then
-        TriggerClientEvent('ox_lib:notify', src, {title = Lang:t('lang_46') .. (Target.PlayerData.charinfo.firstname .. ' ' .. Target.PlayerData.charinfo.lastname) .. Lang:t('lang_47') .. Player.PlayerData.gang.label .. "", type = 'inform', duration = 5000 })
-        TriggerClientEvent('ox_lib:notify', Target.PlayerData.source, {title = Lang:t('lang_48') .. Player.PlayerData.gang.label .. "", type = 'inform', duration = 5000 })
-        TriggerEvent('rsg-log:server:CreateLog', 'gangmenu', Lang:t('lang_49'), 'yellow', (Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname).. Lang:t('lang_50') .. Target.PlayerData.charinfo.firstname .. ' ' .. Target.PlayerData.charinfo.lastname .. ' (' .. Player.PlayerData.gang.name .. ')', false)
+        TriggerClientEvent('ox_lib:notify', src, {title = locale('sv_46') ..' ' .. (Target.PlayerData.charinfo.firstname .. ' ' .. Target.PlayerData.charinfo.lastname) .. ' ' ..locale('sv_47') ..' ' .. Player.PlayerData.gang.label .. "", type = 'inform', duration = 5000 })
+        TriggerClientEvent('ox_lib:notify', Target.PlayerData.source, {title = locale('sv_48') ..' ' .. Player.PlayerData.gang.label .. "", type = 'inform', duration = 5000 })
+        TriggerEvent('rsg-log:server:CreateLog', 'gangmenu', locale('sv_49'), 'yellow', (Player.PlayerData.charinfo.firstname .. ' ' .. Player.PlayerData.charinfo.lastname)..' ' .. locale('sv_50') ..' ' .. Target.PlayerData.charinfo.firstname .. ' ' .. Target.PlayerData.charinfo.lastname .. ' (' .. Player.PlayerData.gang.name .. ')', false)
     end
 end)
 
@@ -241,16 +253,4 @@ RSGCore.Functions.CreateCallback('rsg-gangmenu:getplayers', function(source, cb)
             return a.name < b.name
         end)
     cb(players)
-end)
-
----------------------------------
--- gangmenu storage
----------------------------------
-RegisterNetEvent('rsg-gangmenu:server:openstash', function(stash)
-    local src = source
-    local Player = RSGCore.Functions.GetPlayer(src)
-    if not Player then return end
-    local data = { label = 'Gang Storage', maxweight = Config.StorageMaxWeight, slots = Config.StorageMaxSlots }
-    local stashName = stash
-    exports['rsg-inventory']:OpenInventory(src, stashName, data)
 end)
