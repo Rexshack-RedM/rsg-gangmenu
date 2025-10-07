@@ -73,20 +73,20 @@ RegisterNetEvent('rsg-gangmenu:client:mainmenu', function()
             {
                 title = locale('cl_6'),
                 description = locale('cl_7'),
-                icon = "fa-solid fa-box-open",
+                icon = 'fa-solid fa-box-open',
                 event = 'rsg-gangmenu:client:Stash',
                 arrow = true
             },
             {
                 title = locale('cl_8'),
                 description = locale('cl_9'),
-                icon = "fa-solid fa-sack-dollar",
+                icon = 'fa-solid fa-sack-dollar',
                 event = 'rsg-gangmenu:client:SocietyMenu',
                 arrow = true
             },
         }
     })
-    lib.showContext("gang_mainmenu")
+    lib.showContext('gang_mainmenu')
 end)
 
 -------------------------------------------------------------------------------------------
@@ -133,7 +133,7 @@ RegisterNetEvent('rsg-gangmenu:client:ManageEmployee', function(data)
     end
     options[#options + 1] = {
         title = locale('cl_13'),
-        icon = "fa-solid fa-user-large-slash",
+        icon = 'fa-solid fa-user-large-slash',
         serverEvent = 'rsg-gangmenu:server:FireMember',
         args = data.player.empSource,
         iconColor = 'red'
@@ -195,6 +195,7 @@ RegisterNetEvent('rsg-gangmenu:client:SocietyMenu', function()
     RSGCore.Functions.TriggerCallback('rsg-gangmenu:server:GetAccount', function(cb)
         lib.registerContext({
             id = 'gangsociety_menu',
+            menu = 'gang_mainmenu',
             title = locale('cl_17').. ': $ ' .. comma_valueGang(cb),
             options = {
                 {
@@ -217,7 +218,7 @@ RegisterNetEvent('rsg-gangmenu:client:SocietyMenu', function()
                 },
             }
         })
-        lib.showContext("gangsociety_menu")
+        lib.showContext('gangsociety_menu')
     end, PlayerGang.name)
 end)
 
@@ -234,7 +235,7 @@ RegisterNetEvent('rsg-gangmenu:client:SocetyDeposit', function(money)
         },
     })
     if not input then return end
-    TriggerServerEvent("rsg-gangmenu:server:depositMoney", tonumber(input[1]))
+    TriggerServerEvent('rsg-gangmenu:server:depositMoney', tonumber(input[1]))
 end)
 
 -------------------------------------------------------------------------------------------
@@ -250,5 +251,5 @@ RegisterNetEvent('rsg-gangmenu:client:SocetyWithDraw', function(money)
         },
     })
     if not input then return end
-    TriggerServerEvent("rsg-gangmenu:server:withdrawMoney", tonumber(input[1]))
+    TriggerServerEvent('rsg-gangmenu:server:withdrawMoney', tonumber(input[1]))
 end)
