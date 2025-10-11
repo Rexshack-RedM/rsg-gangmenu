@@ -254,3 +254,26 @@ RSGCore.Functions.CreateCallback('rsg-gangmenu:getplayers', function(source, cb)
         end)
     cb(players)
 end)
+
+-------------------------------------------------------------------------------------------
+-- admin command to remove player from gang
+-------------------------------------------------------------------------------------------
+RSGCore.Commands.Add('removegang', locale('sv_admin_usage'), {{name = 'id', help = 'Player ID'}, {name = 'gang', help = 'Gang ID'}}, false, function(source, args)
+    local src = source
+    local Player = RSGCore.Functions.GetPlayer(tonumber(args[1]))
+    local gang = args[2]
+    
+    if not Player then
+        TriggerClientEvent('ox_lib:notify', src, {title = locale('sv_43'), description = locale('sv_admin_error'), type = 'error', duration = 5000})
+        return
+    end
+    
+    if not RSGCore.Shared.Gangs[gang] then
+        TriggerClientEvent('ox_lib:notify', src, {title = locale('sv_43'), description = locale('sv_admin_invalidgangid'), type = 'error', duration = 5000})
+        return
+    end
+    
+    Player.Functions.SetGang('none', '0')
+    TriggerClientEvent('ox_lib:notify', src, {title = locale('sv_39'), description = locale('sv_admin_remove'), type = 'success', duration = 5000})
+    TriggerClientEvent('ox_lib:notify', Player.PlayerData.source, {title = locale('sv_39'), description = locale('sv_42'), type = 'inform', duration = 7000})
+end, 'admin')

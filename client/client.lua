@@ -1,5 +1,8 @@
 local RSGCore = exports['rsg-core']:GetCoreObject()
+
 local PlayerGang = RSGCore.Functions.GetPlayerData().gang
+local isFromCommand = false  -- Variable to track the menu's origin
+
 lib.locale()
 
 AddEventHandler('onResourceStart', function(resource)
@@ -31,6 +34,33 @@ end
 -------------------------------------------------------------------------------------------
 -- prompts and blips if needed
 -------------------------------------------------------------------------------------------
+local gangBlips = {}
+
+local function CreateGangBlips()
+    -- Delete old blips
+    for _, blip in pairs(gangBlips) do
+        if DoesBlipExist(blip) then
+            RemoveBlip(blip)
+        end
+    end
+    gangBlips = {}
+
+    -- Create new blips
+    for _, v in pairs(Config.GangLocations) do
+        if v.showblip == true then
+            -- If blipforall = true, show to everyone
+            -- If blipforall = false, show only to gang members
+            if v.blipforall == true or (PlayerGang.name and PlayerGang.name == v.id) then
+                local GangMenuBlip = BlipAddForCoords(1664425300, v.coords)
+                SetBlipSprite(GangMenuBlip, joaat(Config.Blip.blipSprite), true)
+                SetBlipScale(GangMenuBlip, Config.Blip.blipScale)
+                SetBlipName(GangMenuBlip, v.blipname)  -- Use the gang’s custom name
+                gangBlips[#gangBlips + 1] = GangMenuBlip
+            end
+        end
+    end
+end
+
 CreateThread(function()
     for _, v in pairs(Config.GangLocations) do
         exports['rsg-core']:createPrompt(v.id, v.coords, RSGCore.Shared.Keybinds[Config.Keybind], locale('cl_open').. ' ' ..v.name, {
@@ -38,13 +68,22 @@ CreateThread(function()
             event = 'rsg-gangmenu:client:mainmenu',
             args = {},
         })
-        if v.showblip == true then
-            local GangMenuBlip = BlipAddForCoords(1664425300, v.coords)
-            SetBlipSprite(GangMenuBlip,  joaat(Config.Blip.blipSprite), true)
-            SetBlipScale(GangMenuBlip, Config.Blip.blipScale)
-            SetBlipName(GangMenuBlip, Config.Blip.blipName)
-        end
     end
+    
+    CreateGangBlips()
+end)
+
+-- Update blips when the player loads
+RegisterNetEvent('RSGCore:Client:OnPlayerLoaded', function()
+    PlayerGang = RSGCore.Functions.GetPlayerData().gang
+    Wait(1000)
+    CreateGangBlips()
+end)
+
+-- Update blips when the gang changes
+RegisterNetEvent('RSGCore:Client:OnGangUpdate', function(GangInfo)
+    PlayerGang = GangInfo
+    CreateGangBlips()
 end)
 
 -------------------------------------------------------------------------------------------
@@ -52,6 +91,7 @@ end)
 -------------------------------------------------------------------------------------------
 RegisterNetEvent('rsg-gangmenu:client:mainmenu', function()
     if not PlayerGang.name or not PlayerGang.isboss then return end
+    isFromCommand = false  -- Reset because we came from the blip
     lib.registerContext({
         id = 'gang_mainmenu',
         title = locale('cl_1'),
@@ -108,7 +148,7 @@ RegisterNetEvent('rsg-gangmenu:client:employeelist', function()
         lib.registerContext({
             id = 'employeelist_menu',
             title = locale('cl_10'),
-            menu = 'gang_mainmenu',
+            menu = isFromCommand and 'gang_commandmenu' or 'gang_mainmenu',  -- Changes depending on the origin
             onBack = function() end,
             position = 'top-right',
             options = options
@@ -170,7 +210,7 @@ RegisterNetEvent('rsg-gangmenu:client:HireMenu', function()
         lib.registerContext({
             id = 'hiremembers_menu',
             title = locale('cl_4'),
-            menu = 'gang_mainmenu',
+            menu = isFromCommand and 'gang_commandmenu' or 'gang_mainmenu',  -- Changes depending on the origin
             onBack = function() end,
             position = 'top-right',
             options = options
@@ -227,7 +267,7 @@ end)
 -------------------------------------------------------------------------------------------
 RegisterNetEvent('rsg-gangmenu:client:SocetyDeposit', function(money)
     local input = lib.inputDialog(locale('cl_22').. ': $ ' .. money, {
-        { 
+        {
             label = locale('cl_23'),
             type = 'number',
             required = true,
@@ -243,7 +283,7 @@ end)
 -------------------------------------------------------------------------------------------
 RegisterNetEvent('rsg-gangmenu:client:SocetyWithDraw', function(money)
     local input = lib.inputDialog(locale('cl_22').. ': $ ' .. money, {
-        { 
+        {
             label = locale('cl_23'),
             type = 'number',
             required = true,
@@ -253,3 +293,48 @@ RegisterNetEvent('rsg-gangmenu:client:SocetyWithDraw', function(money)
     if not input then return end
     TriggerServerEvent('rsg-gangmenu:server:withdrawMoney', tonumber(input[1]))
 end)
+
+-------------------------------------------------------------------------------------------
+-- command menu
+-------------------------------------------------------------------------------------------
+RegisterNetEvent('rsg-gangmenu:client:commandmenu', function()
+    if not PlayerGang.name or not PlayerGang.isboss then return end
+    isFromCommand = true  -- Mark that we came from the command
+    lib.registerContext({
+        id = 'gang_commandmenu',
+        title = locale('cl_1'),
+        options = {
+            {
+                title = locale('cl_2'),
+                description = locale('cl_3'),
+                icon = 'fa-solid fa-list',
+                event = 'rsg-gangmenu:client:employeelist',
+                arrow = true
+            },
+            {
+                title = locale('cl_4'),
+                description = locale('cl_5'),
+                icon = 'fa-solid fa-hand-holding',
+                event = 'rsg-gangmenu:client:HireMenu',
+                arrow = true
+            },
+        }
+    })
+    lib.showContext('gang_commandmenu')
+end)
+
+-------------------------------------------------------------------------------------------
+-- gangmenu command
+-------------------------------------------------------------------------------------------
+RegisterCommand('gangmenu', function()
+    if not PlayerGang.name or not PlayerGang.isboss then
+        lib.notify({
+            title = locale('cl_1'),
+            description = locale('cl_cmd_error'),
+            type = 'error',
+            duration = 5000
+        })
+        return
+    end
+    TriggerEvent('rsg-gangmenu:client:commandmenu')
+end, false)
