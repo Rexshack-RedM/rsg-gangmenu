@@ -22,7 +22,8 @@
     "cl_21" : "retirer de l'argent de votre compte",
     "cl_22" : "Solde Disponible",
     "cl_23" : "Montant",
-    "cl_open" : "Ouvrir",
+    "cl_open" : "Ouvrir ",
+    "cl_cmd_error" : "Vous devez être le boss d'un gang",
 
     "sv_storage" : "Stockage du Gang",
     "sv_24" : "retrait du menu de gang",
@@ -54,5 +55,10 @@
     "sv_50" : "recrutement réussi",
 
 	"sv_51" : "retrait effectué avec succès",
-	"sv_52" : "dépôt effectué avec succès $"
+    "sv_52" : "dépôt effectué avec succès $",
+    "sv_admin_remove" : "Joueur retiré du gang",
+    "sv_admin_error" : "Joueur non trouvé",
+    "sv_admin_noperm" : "Vous n'avez pas la permission",
+    "sv_admin_usage" : "Usage: /removegang [id joueur] [id gang]",
+    "sv_admin_invalidgangid" : "Gang ID Invalide"
 }

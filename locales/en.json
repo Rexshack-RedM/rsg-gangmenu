@@ -23,7 +23,8 @@
     "cl_21" : "withdraw money from your account",
     "cl_22" : "Available Balance",
     "cl_23" : "Amount",
-    "cl_open" : "Open",
+    "cl_open" : "Open ",
+    "cl_cmd_error" : "You must be a gang boss",
 
     "sv_storage" : "Gang Storage",
     "sv_24" : "gang menu withdraw",
@@ -55,5 +56,10 @@
     "sv_50" : "successfully recruited",
 
 	"sv_51" : "successfully withdrew",
-	"sv_52" : "successfully deposited $"
+    "sv_52" : "successfully deposited $",
+    "sv_admin_remove" : "Player removed from gang",
+    "sv_admin_error" : "Player not found",
+    "sv_admin_noperm" : "You don't have permission",
+    "sv_admin_usage" : "Usage: /removegang [player id] [gang id]",
+    "sv_admin_invalidgangid" : "Invalid Gang ID"
 }
