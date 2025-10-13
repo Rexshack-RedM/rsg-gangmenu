@@ -15,10 +15,6 @@ RegisterNetEvent('RSGCore:Client:OnPlayerLoaded', function()
     PlayerGang = RSGCore.Functions.GetPlayerData().gang
 end)
 
-RegisterNetEvent('RSGCore:Client:OnJobUpdate', function(JobInfo)
-    PlayerGang = InfoGang
-end)
-
 local function comma_valueGang(amount)
     local formatted = amount
     while true do
@@ -37,6 +33,11 @@ end
 local gangBlips = {}
 
 local function CreateGangBlips()
+    -- Verfiy if PlayerGang exist
+    if not PlayerGang or not PlayerGang.name then
+        return 
+    end
+
     -- Delete old blips
     for _, blip in pairs(gangBlips) do
         if DoesBlipExist(blip) then
