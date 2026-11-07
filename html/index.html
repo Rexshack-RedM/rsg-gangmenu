@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app" class="hidden">
+    <div class="panel">
+      <div class="panel-header">
+        <button type="button" class="circle-btn" id="btnBack" title="Back">&#8249;</button>
+        <div class="header-center">
+          <div class="title" id="title">Gang Menu</div>
+          <div class="subtitle" id="subtitle"></div>
+        </div>
+        <button type="button" class="circle-btn" id="btnClose" title="Close">&#10005;</button>
+      </div>
+
+      <div class="divider"><span>&#10022;</span></div>
+
+      <div id="view" class="list"></div>
+    </div>
+  </div>
+
+  <div id="modalRoot" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="modal-title" id="modalTitle"></div>
+      <div class="ink-divider"></div>
+      <p id="modalBody"></p>
+      <div id="modalInputWrap" class="hidden" style="margin-top:10px;">
+        <input type="number" id="modalInput" min="1" step="1" />
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="wood-btn muted" id="modalCancel">Cancel</button>
+        <button type="button" class="wood-btn" id="modalConfirm">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

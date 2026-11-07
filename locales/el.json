@@ -62,5 +62,9 @@
     "sv_invite_sent": "Invite sent",
     "sv_offline": "Member must be online to change their grade",
     "sv_storage": "Αποθήκη Συμμορίας",
-    "sv_too_far": "That player is too far away"
+    "sv_too_far": "That player is too far away",
+    "cl_confirm": "Confirm",
+    "cl_cancel": "Cancel",
+    "cl_accept": "Accept",
+    "cl_cmd_remote": "Remote management"
 }

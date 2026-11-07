@@ -1,33 +1,261 @@
 local RSGCore = exports['rsg-core']:GetCoreObject()
-lib.locale()
 
 local PlayerGang = {}
 local isFromCommand = false
 local gangBlips = {}
-
-local function formatMoney(amount)
-    local formatted = tostring(math.floor(tonumber(amount) or 0))
-    local k
-    repeat
-        formatted, k = formatted:gsub('^(-?%d+)(%d%d%d)', '%1,%2')
-    until k == 0
-    return formatted
-end
+local promptIds = {}
+local uiOpen = false
+local invitePending = nil
 
 local function isBoss()
     return PlayerGang and PlayerGang.name and PlayerGang.name ~= 'none' and PlayerGang.isboss
 end
 
-local function rootMenu()
-    return isFromCommand and 'gang_commandmenu' or 'gang_mainmenu'
+local function notify(msg, nType)
+    RSGCore.Functions.Notify({
+        title = locale('cl_1'),
+        description = msg,
+        type = nType or 'inform',
+        duration = 5000,
+    })
 end
+
+local function nuiLocales()
+    return {
+        menu = locale('cl_1'),
+        members = locale('cl_2'),
+        members_desc = locale('cl_3'),
+        hire = locale('cl_4'),
+        hire_desc = locale('cl_5'),
+        storage = locale('cl_6'),
+        storage_desc = locale('cl_7'),
+        money = locale('cl_8'),
+        money_desc = locale('cl_9'),
+        grade = locale('cl_12'),
+        set_grade = locale('cl_11'),
+        fire = locale('cl_13'),
+        fire_confirm = locale('cl_fire_confirm'),
+        citizenid = locale('cl_15'),
+        id = locale('cl_16'),
+        balance = locale('cl_17'),
+        deposit = locale('cl_18'),
+        deposit_desc = locale('cl_19'),
+        withdraw = locale('cl_20'),
+        withdraw_desc = locale('cl_21'),
+        available = locale('cl_22'),
+        no_members = locale('cl_no_members'),
+        no_nearby = locale('cl_no_nearby'),
+        current = locale('cl_current'),
+        invite = locale('cl_invite'),
+        confirm = locale('cl_confirm'),
+        cancel = locale('cl_cancel'),
+        accept = locale('cl_accept'),
+    }
+end
+
+-------------------------------------------------------------------------------------------
+-- NUI bridge
+-------------------------------------------------------------------------------------------
+local function closeUI()
+    if not uiOpen then return end
+    uiOpen = false
+    SetNuiFocus(false, false)
+    SendNUIMessage({ action = 'close' })
+end
+
+local function openMain()
+    if not isBoss() then
+        notify(locale('cl_cmd_error'), 'error')
+        return
+    end
+    uiOpen = true
+    SetNuiFocus(true, true)
+    SendNUIMessage({
+        action = 'open',
+        locales = nuiLocales(),
+        data = {
+            title = PlayerGang.label or locale('cl_1'),
+            subtitle = isFromCommand and locale('cl_cmd_remote') or '',
+            showLocation = not isFromCommand,
+        },
+    })
+end
+
+local function showMembers()
+    local result = RSGCore.Functions.AwaitCallback('rsg-gangmenu:server:GetEmployees')
+    if not result then return end
+    SendNUIMessage({
+        action = 'members',
+        locales = nuiLocales(),
+        data = {
+            gangLabel = PlayerGang.label or '',
+            members = result,
+        },
+    })
+end
+
+local function showManage(citizenid)
+    local result = RSGCore.Functions.AwaitCallback('rsg-gangmenu:server:GetEmployees')
+    if not result then return end
+    local emp
+    for _, v in ipairs(result) do
+        if v.citizenid == citizenid then
+            emp = v
+            break
+        end
+    end
+    if not emp then return end
+
+    local gang = RSGCore.Shared.Gangs[PlayerGang.name]
+    if not gang then return end
+    local myLevel = PlayerGang.grade and tonumber(PlayerGang.grade.level) or 0
+    local levels = {}
+    for k in pairs(gang.grades) do
+        levels[#levels + 1] = tonumber(k)
+    end
+    table.sort(levels)
+
+    local grades = {}
+    for _, lvl in ipairs(levels) do
+        local g = gang.grades[tostring(lvl)] or gang.grades[lvl]
+        if g then
+            grades[#grades + 1] = {
+                level = lvl,
+                name = g.name,
+                current = lvl == emp.gradeLevel,
+                disabled = (lvl == emp.gradeLevel) or (lvl > myLevel),
+            }
+        end
+    end
+
+    SendNUIMessage({
+        action = 'manage',
+        locales = nuiLocales(),
+        data = { employee = emp, grades = grades },
+    })
+end
+
+local function showHire()
+    local players = RSGCore.Functions.AwaitCallback('rsg-gangmenu:server:GetNearbyPlayers') or {}
+    SendNUIMessage({
+        action = 'hire',
+        locales = nuiLocales(),
+        data = { players = players },
+    })
+end
+
+local function showSociety()
+    local balance = RSGCore.Functions.AwaitCallback('rsg-gangmenu:server:GetAccount')
+    if balance == nil then return end
+    local pdata = RSGCore.Functions.GetPlayerData()
+    local cash = (pdata.money and pdata.money.cash) or 0
+    SendNUIMessage({
+        action = 'society',
+        locales = nuiLocales(),
+        data = {
+            balance = balance,
+            cash = cash,
+            maxTransaction = Config.MaxTransaction,
+        },
+    })
+end
+
+RegisterNUICallback('close', function(_, cb)
+    closeUI()
+    cb('ok')
+end)
+
+RegisterNUICallback('action', function(data, cb)
+    cb('ok')
+    if type(data) ~= 'table' or type(data.type) ~= 'string' then return end
+
+    if data.type == 'back' then
+        -- Always return to main from any sub-view
+        openMain()
+        return
+    end
+    if data.type == 'members' then
+        showMembers()
+        return
+    end
+    if data.type == 'hire' then
+        showHire()
+        return
+    end
+    if data.type == 'hirePlayer' then
+        local sid = tonumber(data.source)
+        if sid then
+            TriggerServerEvent('rsg-gangmenu:server:HireMember', sid)
+        end
+        return
+    end
+    if data.type == 'storage' then
+        if isFromCommand then return end
+        closeUI()
+        TriggerServerEvent('rsg-gangmenu:server:openinventory')
+        return
+    end
+    if data.type == 'money' then
+        if isFromCommand then return end
+        showSociety()
+        return
+    end
+    if data.type == 'manage' and type(data.citizenid) == 'string' then
+        showManage(data.citizenid)
+        return
+    end
+    if data.type == 'setGrade' and type(data.citizenid) == 'string' then
+        TriggerServerEvent('rsg-gangmenu:server:GradeUpdate', {
+            cid = data.citizenid,
+            grade = tonumber(data.grade),
+        })
+        showMembers()
+        return
+    end
+    if data.type == 'fire' and type(data.citizenid) == 'string' then
+        TriggerServerEvent('rsg-gangmenu:server:FireMember', data.citizenid)
+        showMembers()
+        return
+    end
+    if data.type == 'deposit' then
+        local amount = tonumber(data.amount)
+        if amount and amount >= 1 then
+            TriggerServerEvent('rsg-gangmenu:server:depositMoney', math.floor(amount))
+            SetTimeout(400, showSociety)
+        end
+        return
+    end
+    if data.type == 'withdraw' then
+        local amount = tonumber(data.amount)
+        if amount and amount >= 1 then
+            TriggerServerEvent('rsg-gangmenu:server:withdrawMoney', math.floor(amount))
+            SetTimeout(400, showSociety)
+        end
+        return
+    end
+end)
+
+RegisterNUICallback('inviteResult', function(data, cb)
+    cb('ok')
+    if invitePending then
+        invitePending(data and data.accepted == true)
+        invitePending = nil
+    end
+    -- Invite can open focus while the boss UI is closed
+    if not uiOpen then
+        SetNuiFocus(false, false)
+        SendNUIMessage({ action = 'close' })
+    end
+end)
 
 -------------------------------------------------------------------------------------------
 -- blips
 -------------------------------------------------------------------------------------------
 local function ClearGangBlips()
     for i = 1, #gangBlips do
-        if DoesBlipExist(gangBlips[i]) then RemoveBlip(gangBlips[i]) end
+        if DoesBlipExist(gangBlips[i]) then
+            RemoveBlip(gangBlips[i])
+        end
     end
     gangBlips = {}
 end
@@ -47,16 +275,27 @@ local function CreateGangBlips()
 end
 
 local function RefreshGang()
-    PlayerGang = RSGCore.Functions.GetPlayerData().gang or {}
+    local data = RSGCore.Functions.GetPlayerData()
+    PlayerGang = (data and data.gang) or {}
     CreateGangBlips()
 end
 
 AddEventHandler('onResourceStart', function(resource)
-    if resource == GetCurrentResourceName() and LocalPlayer.state.isLoggedIn then RefreshGang() end
+    if resource == GetCurrentResourceName() and LocalPlayer.state.isLoggedIn then
+        RefreshGang()
+    end
 end)
 
 AddEventHandler('onResourceStop', function(resource)
-    if resource == GetCurrentResourceName() then ClearGangBlips() end
+    if resource ~= GetCurrentResourceName() then return end
+    closeUI()
+    ClearGangBlips()
+    for _, id in ipairs(promptIds) do
+        pcall(function()
+            exports['rsg-core']:deletePrompt(id)
+        end)
+    end
+    promptIds = {}
 end)
 
 RegisterNetEvent('RSGCore:Client:OnPlayerLoaded', RefreshGang)
@@ -64,6 +303,7 @@ RegisterNetEvent('RSGCore:Client:OnPlayerLoaded', RefreshGang)
 RegisterNetEvent('RSGCore:Client:OnPlayerUnload', function()
     PlayerGang = {}
     ClearGangBlips()
+    closeUI()
 end)
 
 RegisterNetEvent('RSGCore:Client:OnGangUpdate', function(gangInfo)
@@ -73,141 +313,57 @@ end)
 
 CreateThread(function()
     for _, v in ipairs(Config.GangLocations) do
-        exports['rsg-core']:createPrompt(v.id, v.coords, RSGCore.Shared.Keybinds[Config.Keybind], locale('cl_open', v.name), {
-            type = 'client',
-            event = 'rsg-gangmenu:client:mainmenu',
-            args = {},
-        })
+        if v.id and v.coords then
+            exports['rsg-core']:createPrompt(v.id, v.coords, RSGCore.Shared.Keybinds[Config.Keybind], locale('cl_open', v.name), {
+                type = 'client',
+                event = 'rsg-gangmenu:client:mainmenu',
+                args = {},
+            })
+            promptIds[#promptIds + 1] = v.id
+        end
     end
 end)
 
 -------------------------------------------------------------------------------------------
--- menus
+-- open menu
 -------------------------------------------------------------------------------------------
-local function notBoss()
-    lib.notify({ title = locale('cl_1'), description = locale('cl_cmd_error'), type = 'error', duration = 5000 })
-end
-
 local function OpenMenu(fromCommand)
-    if not isBoss() then return notBoss() end
-    isFromCommand = fromCommand
-    local options = {
-        { title = locale('cl_2'), description = locale('cl_3'), icon = 'fa-solid fa-list', event = 'rsg-gangmenu:client:employeelist', arrow = true },
-        { title = locale('cl_4'), description = locale('cl_5'), icon = 'fa-solid fa-hand-holding', event = 'rsg-gangmenu:client:HireMenu', arrow = true },
-    }
-    if not fromCommand then
-        options[#options + 1] = { title = locale('cl_6'), description = locale('cl_7'), icon = 'fa-solid fa-box-open', serverEvent = 'rsg-gangmenu:server:openinventory' }
-        options[#options + 1] = { title = locale('cl_8'), description = locale('cl_9'), icon = 'fa-solid fa-sack-dollar', event = 'rsg-gangmenu:client:SocietyMenu', arrow = true }
+    if not isBoss() then
+        return notify(locale('cl_cmd_error'), 'error')
     end
-    local id = rootMenu()
-    lib.registerContext({ id = id, title = PlayerGang.label or locale('cl_1'), options = options })
-    lib.showContext(id)
+    isFromCommand = fromCommand and true or false
+    openMain()
 end
 
-RegisterNetEvent('rsg-gangmenu:client:mainmenu', function() OpenMenu(false) end)
-RegisterCommand('gangmenu', function() OpenMenu(true) end, false)
-
-RegisterNetEvent('rsg-gangmenu:client:employeelist', function()
-    local result = lib.callback.await('rsg-gangmenu:server:GetEmployees', false)
-    if not result then return end
-    local options = {}
-    for _, v in ipairs(result) do
-        options[#options + 1] = {
-            title = (v.online and '🟢 ' or '❌ ') .. v.name,
-            description = ('%s (%s)'):format(v.gradeName, v.gradeLevel),
-            icon = 'fa-solid fa-circle-user',
-            event = 'rsg-gangmenu:client:ManageEmployee',
-            args = v,
-            disabled = v.isSelf,
-            arrow = not v.isSelf,
-        }
-    end
-    if #options == 0 then options[1] = { title = locale('cl_no_members'), disabled = true } end
-    lib.registerContext({ id = 'employeelist_menu', title = locale('cl_10'), menu = rootMenu(), position = 'top-right', options = options })
-    lib.showContext('employeelist_menu')
+RegisterNetEvent('rsg-gangmenu:client:mainmenu', function()
+    OpenMenu(false)
 end)
 
-RegisterNetEvent('rsg-gangmenu:client:ManageEmployee', function(emp)
-    local gang = RSGCore.Shared.Gangs[PlayerGang.name]
-    if not gang then return end
-    local myLevel = PlayerGang.grade and PlayerGang.grade.level or 0
-    local levels = {}
-    for k in pairs(gang.grades) do levels[#levels + 1] = tonumber(k) end
-    table.sort(levels)
-
-    local options = {}
-    for _, lvl in ipairs(levels) do
-        local g = gang.grades[tostring(lvl)] or gang.grades[lvl]
-        local current = lvl == emp.gradeLevel
-        options[#options + 1] = {
-            title = locale('cl_11', g.name),
-            description = locale('cl_12') .. ': ' .. lvl .. (current and (' — ' .. locale('cl_current')) or ''),
-            icon = 'fa-solid fa-file-pen',
-            disabled = current or lvl > myLevel,
-            serverEvent = 'rsg-gangmenu:server:GradeUpdate',
-            args = { cid = emp.citizenid, grade = lvl },
-        }
-    end
-    options[#options + 1] = {
-        title = locale('cl_13'),
-        icon = 'fa-solid fa-user-large-slash',
-        iconColor = 'red',
-        onSelect = function()
-            local ok = lib.alertDialog({ header = locale('cl_13'), content = locale('cl_fire_confirm', emp.name), centered = true, cancel = true })
-            if ok == 'confirm' then TriggerServerEvent('rsg-gangmenu:server:FireMember', emp.citizenid) end
-        end,
-    }
-    lib.registerContext({ id = 'managemembers_menu', title = emp.name, menu = 'employeelist_menu', position = 'top-right', options = options })
-    lib.showContext('managemembers_menu')
-end)
-
-RegisterNetEvent('rsg-gangmenu:client:HireMenu', function()
-    local players = lib.callback.await('rsg-gangmenu:server:GetNearbyPlayers', false) or {}
-    local options = {}
-    for _, v in ipairs(players) do
-        options[#options + 1] = {
-            title = v.name,
-            description = locale('cl_15') .. ': ' .. v.citizenid .. ' - ' .. locale('cl_16') .. ': ' .. v.source,
-            icon = 'fa-solid fa-user-check',
-            serverEvent = 'rsg-gangmenu:server:HireMember',
-            args = v.source,
-        }
-    end
-    if #options == 0 then options[1] = { title = locale('cl_no_nearby'), disabled = true } end
-    lib.registerContext({ id = 'hiremembers_menu', title = locale('cl_4'), menu = rootMenu(), position = 'top-right', options = options })
-    lib.showContext('hiremembers_menu')
-end)
-
--- recruit must accept the invite
-lib.callback.register('rsg-gangmenu:client:ConfirmInvite', function(gangLabel)
-    return lib.alertDialog({ header = locale('cl_1'), content = locale('cl_invite', gangLabel), centered = true, cancel = true }) == 'confirm'
-end)
+RegisterCommand('gangmenu', function()
+    OpenMenu(true)
+end, false)
 
 -------------------------------------------------------------------------------------------
--- money
+-- recruit invite (server awaits client callback)
 -------------------------------------------------------------------------------------------
-local function moneyDialog(header, balance, serverEvent)
-    local input = lib.inputDialog(header, {
-        { label = locale('cl_23'), description = locale('cl_22') .. ': $' .. formatMoney(balance), type = 'number', required = true, min = 1, max = math.floor(math.min(balance, Config.MaxTransaction)), icon = 'fa-solid fa-dollar-sign' },
+RSGCore.Functions.CreateClientCallback('rsg-gangmenu:client:ConfirmInvite', function(cb, gangLabel)
+    -- Show invite modal even if boss UI is closed
+    invitePending = cb
+    SetNuiFocus(true, true)
+    SendNUIMessage({
+        action = 'invite',
+        locales = nuiLocales(),
+        gangLabel = gangLabel or '?',
     })
-    local amount = input and tonumber(input[1])
-    if amount and amount >= 1 then TriggerServerEvent(serverEvent, math.floor(amount)) end
-end
-
-RegisterNetEvent('rsg-gangmenu:client:SocietyMenu', function()
-    local balance = lib.callback.await('rsg-gangmenu:server:GetAccount', false)
-    if not balance then return end
-    local cash = RSGCore.Functions.GetPlayerData().money.cash or 0
-    lib.registerContext({
-        id = 'gangsociety_menu',
-        menu = 'gang_mainmenu',
-        title = locale('cl_17') .. ': $' .. formatMoney(balance),
-        options = {
-            { title = locale('cl_18'), description = locale('cl_19'), icon = 'fa-solid fa-money-bill-transfer', iconColor = 'green', disabled = cash < 1,
-              onSelect = function() moneyDialog(locale('cl_18'), cash, 'rsg-gangmenu:server:depositMoney') end },
-            { title = locale('cl_20'), description = locale('cl_21'), icon = 'fa-solid fa-money-bill-transfer', iconColor = 'red', disabled = balance < 1,
-              onSelect = function() moneyDialog(locale('cl_20'), balance, 'rsg-gangmenu:server:withdrawMoney') end },
-        }
-    })
-    lib.showContext('gangsociety_menu')
+    -- Safety timeout
+    SetTimeout(30000, function()
+        if invitePending then
+            invitePending(false)
+            invitePending = nil
+            if not uiOpen then
+                SetNuiFocus(false, false)
+                SendNUIMessage({ action = 'close' })
+            end
+        end
+    end)
 end)
