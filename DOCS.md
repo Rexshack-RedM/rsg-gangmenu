@@ -81,4 +81,4 @@ Every action re-checks boss status and the real gang on the server. Stash and ga
 | Placeholder gang1 at 0,0,0 | Replace the example location in `GangLocations` |
 | Stash won't open | Stand within `InteractDistance` of the location |
 
-Support: https://buymeacoffee.com/rexshack
+Support the Project : https://rexshack.tebex.store/
