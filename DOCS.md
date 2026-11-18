@@ -82,3 +82,79 @@ Every action re-checks boss status and the real gang on the server. Stash and ga
 | Stash won't open | Stand within `InteractDistance` of the location |
 
 Support the Project : https://rexshack.tebex.store/
+
+<!-- BEGIN AUTO-REFERENCE (generated from the code; re-run the generator instead of editing by hand) -->
+
+## Technical reference
+
+Generated from the source of **rsg-gangmenu 3.0.1**. Names, arguments and defaults below are read straight from the code.
+
+### Dependencies
+
+`rsg-core`, `oxmysql`, `rsg-inventory`
+
+### Configuration
+
+| Option | Default | Notes |
+|---|---|---|
+| `Config.Blip` | `table` | blip settings |
+| `Config.Keybind` | `'J'` | settings |
+| `Config.StorageMaxWeight` | `4000000` |  |
+| `Config.StorageMaxSlots` | `50` |  |
+| `Config.InteractDistance` | `5.0` | server-side max distance from a gang location to use stash / money |
+| `Config.HireDistance` | `10.0` | max distance between boss and recruit |
+| `Config.MaxTransaction` | `1000000` | max single deposit / withdraw |
+| `Config.GangLocations` | `table` | id must match the gang name in rsg-core/shared/gangs.lua |
+
+### Callbacks
+
+| Callback | Side | Arguments | File |
+|---|---|---|---|
+| `rsg-gangmenu:client:ConfirmInvite` | client | `cb, gangLabel` | `client/client.lua` |
+| `rsg-gangmenu:server:GetAccount` | server | `source, cb` | `server/server.lua` |
+| `rsg-gangmenu:server:GetEmployees` | server | `source, cb` | `server/server.lua` |
+| `rsg-gangmenu:server:GetNearbyPlayers` | server | `source, cb` | `server/server.lua` |
+
+```lua
+-- client side
+RSGCore.Functions.TriggerCallback('rsg-gangmenu:client:ConfirmInvite', function(result)
+    -- use result
+end)
+```
+
+### Events
+
+Server events can be fired by any client, so every handler re-validates the player, the arguments and any permission, distance or cooldown on the server. Never add a reward to a handler without those checks.
+
+| Event | Side | Arguments | File |
+|---|---|---|---|
+| `RSGCore:Client:OnPlayerLoaded` | client | `` | `client/client.lua` |
+| `RSGCore:Client:OnPlayerUnload` | client | `` | `client/client.lua` |
+| `RSGCore:Client:OnGangUpdate` | client | `gangInfo` | `client/client.lua` |
+| `rsg-gangmenu:client:mainmenu` | client | `` | `client/client.lua` |
+| `rsg-gangmenu:server:openinventory` | server | `` | `server/server.lua` |
+| `rsg-gangmenu:server:withdrawMoney` | server | `amount` | `server/server.lua` |
+| `rsg-gangmenu:server:depositMoney` | server | `amount` | `server/server.lua` |
+| `rsg-gangmenu:server:GradeUpdate` | server | `data` | `server/server.lua` |
+| `rsg-gangmenu:server:FireMember` | server | `citizenid` | `server/server.lua` |
+| `rsg-gangmenu:server:HireMember` | server | `recruit` | `server/server.lua` |
+
+```lua
+-- from a client script
+TriggerServerEvent('rsg-gangmenu:server:openinventory')
+-- from a server script
+TriggerClientEvent('RSGCore:Client:OnPlayerLoaded', source)
+```
+
+### Commands
+
+| Command | Notes | File |
+|---|---|---|
+| `/gangmenu` |  | `client/client.lua` |
+| `/removegang` | locale('sv_admin_usage') | `server/server.lua` |
+
+### Locales
+
+Language files in `locales/`: `cs`, `de`, `el`, `en`, `es`, `fr`, `it`, `ja`, `nl`, `pl`, `pt-br`, `ro`. Set the language with `setr rsg:locale "en"`.
+
+<!-- END AUTO-REFERENCE -->
