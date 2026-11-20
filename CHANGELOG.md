@@ -2,6 +2,11 @@
 
 All notable changes to rsg-gangmenu. Newest first.
 
+## Unreleased
+
+### Removed
+- Unused locale keys (all languages): `cl_10`, `cl_23`.
+
 ## 3.0.2
 
 ### Added

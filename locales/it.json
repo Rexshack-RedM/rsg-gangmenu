@@ -1,6 +1,5 @@
 {
     "cl_1": "Menu Banda",
-    "cl_10": "Lista Membri",
     "cl_11": "imposta grado come %s",
     "cl_12": "Grado",
     "cl_13": "Licenzia Membro",
@@ -13,7 +12,6 @@
     "cl_20": "Prelievo",
     "cl_21": "preleva denaro dal tuo conto",
     "cl_22": "Saldo Disponibile",
-    "cl_23": "Importo",
     "cl_3": "Controlla la tua Lista Membri",
     "cl_4": "Assumi Membri della Banda",
     "cl_5": "Assumi Civili nelle Vicinanze",

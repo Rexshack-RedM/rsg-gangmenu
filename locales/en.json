@@ -1,6 +1,5 @@
 {
     "cl_1": "Gang Menu",
-    "cl_10": "Member List",
     "cl_11": "set grade as %s",
     "cl_12": "Grade",
     "cl_13": "Fire Member",
@@ -13,7 +12,6 @@
     "cl_20": "Withdraw",
     "cl_21": "withdraw money from your account",
     "cl_22": "Available Balance",
-    "cl_23": "Amount",
     "cl_3": "Check your Member List",
     "cl_4": "Hire Gang Members",
     "cl_5": "Hire Nearby Civilians",

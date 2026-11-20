@@ -1,6 +1,5 @@
 {
     "cl_1": "Menú de pandillas",
-    "cl_10": "Lista de miembros",
     "cl_11": "Establecer grado como %s",
     "cl_12": "Grado",
     "cl_13": "Despedir miembro",
@@ -13,7 +12,6 @@
     "cl_20": "Retirar",
     "cl_21": "retirar dinero de tu cuenta",
     "cl_22": "Saldo disponible",
-    "cl_23": "Monto",
     "cl_3": "Consultar la lista de miembros",
     "cl_4": "Contratar miembros de pandillas",
     "cl_5": "Contratar civiles cercanos",

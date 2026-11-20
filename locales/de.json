@@ -1,6 +1,5 @@
 {
     "cl_1": "Gang-Menü",
-    "cl_10": "Mitgliederliste",
     "cl_11": "Rang festlegen als %s",
     "cl_12": "Rang",
     "cl_13": "Mitglied entlassen",
@@ -13,7 +12,6 @@
     "cl_20": "Abheben",
     "cl_21": "Geld vom Konto abheben",
     "cl_22": "Verfügbarer Kontostand",
-    "cl_23": "Betrag",
     "cl_3": "Mitgliederliste anzeigen",
     "cl_4": "Mitglieder anwerben",
     "cl_5": "Zivilisten in der Nähe anwerben",

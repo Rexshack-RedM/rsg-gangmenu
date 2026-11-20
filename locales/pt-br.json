@@ -1,6 +1,5 @@
 {
     "cl_1": "Menu da Gangue",
-    "cl_10": "Lista de Membros",
     "cl_11": "definir cargo como %s",
     "cl_12": "Cargo",
     "cl_13": "Demitir Membro",
@@ -13,7 +12,6 @@
     "cl_20": "Sacar",
     "cl_21": "sacar dinheiro da sua conta",
     "cl_22": "Saldo Disponível",
-    "cl_23": "Quantidade",
     "cl_3": "Ver sua Lista de Membros",
     "cl_4": "Contratar Membros para a Gangue",
     "cl_5": "Contratar Civis Próximos",

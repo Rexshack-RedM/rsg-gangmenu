@@ -1,6 +1,5 @@
 {
     "cl_1": "Menu Gang",
-    "cl_10": "Liste des Membres",
     "cl_11": "définir le grade comme %s",
     "cl_12": "Grade",
     "cl_13": "Renvoyer un Membre",
@@ -13,7 +12,6 @@
     "cl_20": "Retrait",
     "cl_21": "retirer de l'argent de votre compte",
     "cl_22": "Solde Disponible",
-    "cl_23": "Montant",
     "cl_3": "Consulter votre Liste de Membres",
     "cl_4": "Recruter des Membres de Gang",
     "cl_5": "Recruter les Civils à Proximité",
